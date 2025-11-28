@@ -1,0 +1,34 @@
+node_modules/
+.expo/
+.expo-shared/
+dist/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+.env
+.env.local
+.env.production
+
+# Firebase
+backend/functions/node_modules/
+backend/.firebase/
+backend/firebase-debug.log
+backend/firestore-debug.log
+backend/ui-debug.log
+backend/serviceAccountKey.json
+backend/*.json
+!backend/firebase.json
+!backend/firestore.indexes.json
+!backend/functions/package.json
+!backend/functions/package-lock.json
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
