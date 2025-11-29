@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../config/theme';
 import { Video } from '../types';
 
@@ -23,12 +23,24 @@ export const VideoCard: React.FC<VideoCardProps> = ({ video, onPress, onAddToWat
             activeOpacity={0.8}
         >
             <View style={styles.thumbnail}>
+                {video.thumbnailUrl && (
+                    <Image
+                        source={{ uri: video.thumbnailUrl }}
+                        style={styles.thumbnailImage}
+                        resizeMode="cover"
+                    />
+                )}
                 <View style={styles.durationBadge}>
                     <Text style={styles.durationText}>{formatDuration(video.duration)}</Text>
                 </View>
             </View>
             <View style={styles.content}>
                 <Text style={styles.title} numberOfLines={2}>{video.title}</Text>
+                {video.channelName && (
+                    <Text style={styles.channelName} numberOfLines={1}>
+                        {video.channelName} • {video.viewCount ? `${(video.viewCount / 1000).toFixed(1)}k views` : ''}
+                    </Text>
+                )}
                 {onAddToWatchlist && (
                     <TouchableOpacity
                         style={styles.addButton}
@@ -59,6 +71,12 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
         alignItems: 'flex-end',
         padding: SPACING.sm,
+        position: 'relative',
+    },
+    thumbnailImage: {
+        ...StyleSheet.absoluteFillObject,
+        width: '100%',
+        height: '100%',
     },
     durationBadge: {
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -76,6 +94,11 @@ const styles = StyleSheet.create({
     },
     title: {
         ...TYPOGRAPHY.h3,
+        marginBottom: SPACING.xs,
+    },
+    channelName: {
+        ...TYPOGRAPHY.caption,
+        color: COLORS.textSecondary,
         marginBottom: SPACING.sm,
     },
     addButton: {

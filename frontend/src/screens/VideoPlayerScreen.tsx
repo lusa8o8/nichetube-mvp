@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, TextInput, Platform } from 'react-native';
+import { WebView } from 'react-native-webview';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../config/theme';
 import { apiService } from '../services/api';
 import { Video, Transcript } from '../types';
@@ -35,6 +36,46 @@ export const VideoPlayerScreen: React.FC<VideoPlayerScreenProps> = ({ video, onB
         return parts;
     };
 
+    const renderVideoPlayer = () => {
+        if (video.youtubeId) {
+            if (Platform.OS === 'web') {
+                return (
+                    <View style={styles.videoContainer}>
+                        <iframe
+                            width="100%"
+                            height="100%"
+                            src={`https://www.youtube.com/embed/${video.youtubeId}`}
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            style={{ border: 'none' }}
+                        />
+                    </View>
+                );
+            } else {
+                return (
+                    <View style={styles.videoContainer}>
+                        <WebView
+                            source={{ uri: `https://www.youtube.com/embed/${video.youtubeId}` }}
+                            style={{ flex: 1 }}
+                            javaScriptEnabled={true}
+                            domStorageEnabled={true}
+                        />
+                    </View>
+                );
+            }
+        }
+
+        return (
+            <View style={styles.videoPlaceholder}>
+                <Text style={styles.videoPlaceholderText}>
+                    Video player not available for this video
+                </Text>
+                <Text style={styles.videoUrl}>{video.mockVideoUrl}</Text>
+            </View>
+        );
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
@@ -45,6 +86,15 @@ export const VideoPlayerScreen: React.FC<VideoPlayerScreenProps> = ({ video, onB
             </View>
 
             <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+                {/* Video Player Section */}
+                <View style={styles.videoSection}>
+                    <Text style={styles.sectionTitle}>Video Player</Text>
+                    {renderVideoPlayer()}
+                    {video.description && (
+                        <Text style={styles.description}>{video.description}</Text>
+                    )}
+                </View>
+
                 {/* Transcript Section */}
                 <View style={styles.transcriptSection}>
                     <Text style={styles.sectionTitle}>Transcript</Text>
@@ -83,17 +133,6 @@ export const VideoPlayerScreen: React.FC<VideoPlayerScreenProps> = ({ video, onB
                     ) : (
                         <Text style={styles.errorText}>Transcript not available</Text>
                     )}
-                </View>
-
-                {/* Video Player Placeholder */}
-                <View style={styles.videoSection}>
-                    <Text style={styles.sectionTitle}>Video Player</Text>
-                    <View style={styles.videoPlaceholder}>
-                        <Text style={styles.videoPlaceholderText}>
-                            Video player will be implemented here
-                        </Text>
-                        <Text style={styles.videoUrl}>{video.mockVideoUrl}</Text>
-                    </View>
                 </View>
             </ScrollView>
         </SafeAreaView>
@@ -175,6 +214,18 @@ const styles = StyleSheet.create({
     },
     videoSection: {
         marginBottom: SPACING.xl,
+    },
+    videoContainer: {
+        width: '100%',
+        height: 220,
+        backgroundColor: '#000',
+        borderRadius: BORDER_RADIUS.lg,
+        overflow: 'hidden',
+        marginBottom: SPACING.md,
+    },
+    description: {
+        ...TYPOGRAPHY.bodySecondary,
+        marginTop: SPACING.sm,
     },
     videoPlaceholder: {
         backgroundColor: COLORS.surface,

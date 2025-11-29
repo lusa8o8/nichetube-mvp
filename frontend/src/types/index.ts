@@ -17,10 +17,17 @@ export interface Niche {
 // Video types
 export interface Video {
     videoId: string;
+    youtubeId?: string; // YouTube video ID
     title: string;
+    description?: string;
+    thumbnailUrl?: string; // YouTube thumbnail URL
     duration: number; // in seconds
     nicheId: string;
-    mockVideoUrl: string;
+    channelName?: string; // YouTube channel name
+    viewCount?: number; // YouTube view count
+    publishedAt?: string; // YouTube publish date
+    url?: string; // Full YouTube URL
+    mockVideoUrl?: string; // Fallback for old data
 }
 
 // Transcript types
