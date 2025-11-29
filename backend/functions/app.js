@@ -1,6 +1,12 @@
+// Load environment variables in development
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config();
+}
+
 const admin = require("firebase-admin");
 const express = require("express");
 const cors = require("cors");
+const YouTubeService = require("./services/youtube");
 
 // Initialize Firebase Admin
 // Check if running on Vercel (environment variable) or local/Firebase
@@ -27,6 +33,10 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
 
 const db = admin.firestore();
 const app = express();
+
+// Initialize YouTube service
+const youtubeApiKey = process.env.YOUTUBE_API_KEY || '';
+const youtubeService = youtubeApiKey ? new YouTubeService(youtubeApiKey) : null;
 
 app.use(cors({ origin: true }));
 app.use(express.json());
@@ -168,6 +178,52 @@ app.post("/api/users", async (req, res) => {
     } catch (error) {
         console.error("Error creating user:", error);
         res.status(500).json({ error: "Failed to create user" });
+    }
+});
+
+// Refresh videos from YouTube for a specific niche
+app.post("/api/videos/refresh", async (req, res) => {
+    try {
+        if (!youtubeService) {
+            res.status(503).json({ error: "YouTube service not configured" });
+            return;
+        }
+
+        const { nicheId, keywords, maxResults = 10 } = req.body;
+
+        if (!nicheId || !keywords) {
+            res.status(400).json({ error: "nicheId and keywords are required" });
+            return;
+        }
+
+        // Fetch videos from YouTube
+        const youtubeVideos = await youtubeService.searchVideos(keywords, maxResults);
+
+        // Save videos to Firestore
+        const batch = db.batch();
+        const savedVideos = [];
+
+        for (const video of youtubeVideos) {
+            const videoRef = db.collection("videos").doc();
+            const videoData = {
+                ...video,
+                nicheId,
+                videoId: videoRef.id,
+                createdAt: admin.firestore.FieldValue.serverTimestamp()
+            };
+            batch.set(videoRef, videoData);
+            savedVideos.push({ ...videoData, videoId: videoRef.id });
+        }
+
+        await batch.commit();
+
+        res.json({
+            message: `Successfully refreshed ${savedVideos.length} videos`,
+            videos: savedVideos
+        });
+    } catch (error) {
+        console.error("Error refreshing videos:", error);
+        res.status(500).json({ error: "Failed to refresh videos from YouTube" });
     }
 });
 
