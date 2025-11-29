@@ -1,6 +1,9 @@
 import { Niche, Video, Transcript } from '../types';
 
-const API_BASE_URL = 'http://127.0.0.1:5002/nichetube-mvp/us-central1/api'; // Local Firebase emulator
+// Use relative path in production (Vercel), full URL in dev (Emulator)
+const API_BASE_URL = __DEV__
+    ? 'http://127.0.0.1:5002/nichetube-mvp/us-central1/api'
+    : '/api';
 
 export const apiService = {
     // Get available niches
